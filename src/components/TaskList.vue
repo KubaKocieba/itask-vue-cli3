@@ -4,25 +4,27 @@
       <div class="filters">
       <label for="filters"> Filter by
       <select  v-if="tasksLoaded && tasks" v-model="status">
-        <option v-for="option in filterOptions" :value="option.value" @click="status = option.value">{{option.text}}</option>
+        <option v-for="(option, index) in filterOptions" :value="option.value" @click="status = option.value" :key="`filterOption${index}`">{{option.text}}</option>
       </select></label>
     </div>
     </small>
     <div id="list" v-if="tasksLoaded">
-      <transition-group appear leave-active-class="animated fadeOut">
-        <Task
-          v-for="(task, index) in areEnoughInputs"
-          enter-active-class="animated fadeIn"
-          leave-active-class="animated fadeOut"
-          mode="in-out"
-          v-if="!task.init"
-          :name="`taskInput${index}`"
-          :task="populateInputs(tasks, index)"
-          :key="index"
-          :filter="status"
-          tag="div"
+      <Container @drop="onDrop" @drag-start="dragStart">
+        <Draggable v-for="(task, index) in areEnoughInputs" v-if="!task.init" :key="`drag${index}`">
+          <transition-group appear leave-active-class="animated fadeOut">
+          <Task
+            enter-active-class="animated fadeIn"
+            leave-active-class="animated fadeOut"
+            mode="in-out"
+            :name="`taskInput${index}`"
+            :task="populateInputs(tasks, index)"
+            :key="`task${index}`"
+            :filter="status"
           ></Task>
-      </transition-group>
+          </transition-group>
+        </Draggable>
+
+      </Container>
     </div>
     <div v-else id="loading">Loading</div>
 
@@ -34,11 +36,14 @@
 
   import taskTools from './taskTools'
   import Task from './Task'
+  import { Draggable, Container } from "vue-smooth-dnd";
 
   export default {
     components:{
       taskTools,
-      Task
+      Task,
+      Container,
+      Draggable
     },
     props: ['taskListTab'],
     data(){
@@ -84,6 +89,43 @@
         }
 
         return search || this.generic;
+      },
+      onDrop(data){
+        let list  = {...this.tasks};
+
+        let listKeys = Object.keys(list);
+
+        listKeys.splice(0,1);
+
+        const closest = (toWhat) => {
+          if(!listKeys[toWhat]) {
+            console.log('pach');
+            return listKeys.reduce((prev, curr) => Math.abs(curr - toWhat) < Math.abs(prev - toWhat) ? curr : prev)
+          }
+
+          return listKeys[toWhat];
+        };
+
+        const draggedTask   = closest(data.removedIndex),
+              droppedOnTask = closest(data.addedIndex);
+
+        const buffer = list[draggedTask];
+
+        console.log(draggedTask);
+        console.log(droppedOnTask);
+
+        console.log(data);
+
+        list[draggedTask].slot = 'taskInput' + data.addedIndex;
+
+        if (droppedOnTask){
+          list[droppedOnTask].slot = 'taskInput' + data.removedIndex;
+        }
+
+        this.$store.dispatch('editList', list);
+      },
+      dragStart(){
+        //for test purposes
       }
     },
     computed:{

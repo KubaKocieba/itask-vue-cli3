@@ -6118,6 +6118,10 @@ slice-ansi@1.0.0:
   dependencies:
     is-fullwidth-code-point "^2.0.0"
 
+smooth-dnd@0.5.9:
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/smooth-dnd/-/smooth-dnd-0.5.9.tgz#fb09aead66ed51c44f90640f9894729d1a214e6c"
+
 snapdragon-node@^2.0.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/snapdragon-node/-/snapdragon-node-2.1.1.tgz#6c175f86ff14bdb0724563e8f3c1b021a286853b"
@@ -6860,6 +6864,12 @@ vue-resource@^1.5.1:
   resolved "https://registry.yarnpkg.com/vue-resource/-/vue-resource-1.5.1.tgz#0f3d685e3254d21800bebd966edcf56c34b3b6e4"
   dependencies:
     got "^8.0.3"
+
+vue-smooth-dnd@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/vue-smooth-dnd/-/vue-smooth-dnd-0.2.5.tgz#a62fe38b5b1d24f658a34cf6c74238bb2cc33c53"
+  dependencies:
+    smooth-dnd "0.5.9"
 
 vue-style-loader@^4.1.0:
   version "4.1.2"

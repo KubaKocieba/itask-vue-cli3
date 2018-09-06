@@ -1,7 +1,7 @@
 <template>
   <div class="tab" :class="{active: isItActive}">
     <input v-focus v-if="edit" @blur="edit = false" type="text" v-model="tabName" @keydown.enter="editTab"></input>
-    <span v-else class="nameDisplay" @click="displayTab" @contextmenu.prevent="edit = true">{{this.tab}}</span>
+    <span v-else class="nameDisplay" @dblclick="displayTab" @contextmenu.prevent="edit = true">{{this.tab}}</span>
     <span class="closeTab" @click="closeTab">x</span>
   </div>
 </template>
@@ -36,11 +36,11 @@
         }
       },
       isItActive(){
-        return this.tabKey === this.isActive;
+        return this.tabKey == this.isActive;
       }
     },
     created(){
-      this.$emit('makeActive', this.tabKey);
+      this.isItActiv ? this.$emit('makeActive', this.tabKey) : null;
     },
     methods:{
       editTab(event){

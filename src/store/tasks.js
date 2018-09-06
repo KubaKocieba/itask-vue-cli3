@@ -10,10 +10,15 @@ const db = axios.create({
 const state = {
   tasks: {},
   tabs: {},
-  loaded: false
+  tabData: null,
+  loaded: false,
+  activeTab: 0
 };
 
 const getters = {
+  tabData: state => {
+    return state.tabData
+  },
   tabs: state => {
     return state.tabs
   },
@@ -22,6 +27,9 @@ const getters = {
   },
   tasksLoaded: state => {
     return state.loaded
+  },
+  activeTab:  state => {
+    return state.activeTab
   }
 };
 
@@ -43,11 +51,14 @@ const mutations = {
     .then(resp=>{
       store.dispatch('fetchTabs');
       localStorage.setItem('activeTab', resp.data.name);
+      state.activeTab = resp.data.name;
       store.dispatch('fetchList' ,resp.data.name);
     });
   },
   editTabName(state, tab){
     var userId = store.getters.user.userId;
+
+    state.tabData.tabs[tab.key].name= tab.name;
 
     db.patch('users/' + userId + '/tabs/' + tab.key + '.json?auth=' + store.getters.user.idToken, {name: tab.name})
       .then(resp=>{
@@ -67,16 +78,19 @@ const mutations = {
           Vue.set(state['tabs'], tab , {'name' : tabs[tab]['name']});
         });
       }
+
+      state.tabData = {...resp.data};
     });
   },
   closeTab(state, tabObj){
     var userId = store.getters.user.userId;
 
     db.delete('users/' + userId + '/tabs/' + tabObj.key + '.json?auth=' + store.getters.user.idToken).then(resp=> {
+
+      Vue.delete(state.tabData.tabs, tabObj.key);
       Vue.delete(state.tabs, tabObj.key);
 
       const lastExisting = Object.keys(state['tabs'])[Object.keys(state['tabs']).length-1];
-
 
       if (tabObj.key === localStorage.getItem('activeTab'))
       {
@@ -87,9 +101,35 @@ const mutations = {
       localStorage.setItem('activeTab', lastExisting);
     });
   },
+  switchTabs(state, newTabs){
+    const {stateTabs, dbSource, dbTarget} = newTabs,
+          userId = store.getters.user.userId;
+
+    console.log('dzialamy');
+    state.tabs = JSON.parse(stateTabs);
+
+    let tabData = {...state.tabData.tabs};
+    const buffer = {...tabData[dbSource]};
+
+    tabData[dbSource] = {...tabData[dbTarget]};
+
+    tabData[dbTarget] = {...buffer};
+
+    state.tabData.tabs = {...tabData};
+
+    // if(state.activeTab === dbSource){
+    //   state.activeTab = dbTarget;
+    // }
+
+    db.put('users/' + userId + '/tabs.json?auth=' + store.getters.user.idToken, tabData);
+  },
+  makeTabActive(state, currentActive){
+    state.activeTab = currentActive;
+  },
   receiveList(state, tab){
     var userId = store.getters.user.userId;
 
+    console.log('jest lista');
     state.loaded = false;
 
     db.get('users/' + userId + '.json?auth=' + store.getters.user.idToken)
@@ -105,7 +145,8 @@ const mutations = {
                 name:'First list',
                 tasks: [{init:true}]
               }]
-            }).then(msg => {
+        }).then(msg => {
+                state.tabData = msg.data;
                 store.dispatch('fetchTabs');
               }
             );
@@ -114,6 +155,8 @@ const mutations = {
         }
         else
         {
+          state.tabData = {...resp.data};
+
           db.get('users/' + userId + '/tabs/' + tab + '/tasks.json?auth=' + store.getters.user.idToken)
             .then(resp => {
               //checking if has tasks - after clearing the list, the tasks object on db can be empty
@@ -140,6 +183,14 @@ const mutations = {
         console.log(error);
       })
   },
+  editList(state, updatedList){
+    var userId = store.getters.user.userId;
+
+    state.tasks = updatedList;
+
+    db.put('users/' + userId + '/tabs/' + localStorage.getItem('activeTab') + '/tasks.json?auth=' + store.getters.user.idToken, updatedList);
+  }
+  ,
   'ADD_TASK'(state, task){
     var userId = store.getters.user.userId;
 
@@ -159,8 +210,6 @@ const mutations = {
   },
   'CLEAR_LIST'(state){
     var userId = store.getters.user.userId;
-
-    console.log(localStorage.getItem('activeTab'));
 
     db.delete('users/' + userId + '/tabs/' + localStorage.getItem('activeTab') + '/tasks.json?auth=' + store.getters.user.idToken).then(resp => {
       state.tasks = {};
@@ -218,6 +267,9 @@ const actions = {
   fetchList({commit}, tab) {
     commit('receiveList', tab);
   },
+  editList({commit}, newOrder){
+    commit('editList', newOrder);
+  },
   clearStore({commit}){
     commit('resetData');
   },
@@ -232,6 +284,12 @@ const actions = {
   },
   deleteTab({commit}, tab){
     commit('closeTab', tab);
+  },
+  switchTabs({commit}, tabSwitching){
+    commit('switchTabs', tabSwitching);
+  },
+  makeTabActive({commit}, whichTab){
+    commit('makeTabActive', whichTab);
   }
 };
 

@@ -3,8 +3,18 @@
     <app-heading></app-heading>
     <div id="tabsSection">
       <div id="addTab" @click="newTab">+</div>
-      <div id="tabs">
-        <app-task-tab v-for="(tab, tabKey) in allTabs" :name="tab.name" :key="tabKey" :tabKey="tabKey" @makeActive="activateTab" :isActive="activeTab"></app-task-tab>
+      <div>
+        <Container id="tabs" @drag-start="dragStart" @drop="tabReplace" orientation="horizontal" lock-axis="x">
+          <Draggable v-for="(tab, tabKey, index) in allTabs" :key="index">
+            <app-task-tab
+                    :name="tab.name"
+                    :tabKey="tabKey"
+                    @makeActive="activateTab"
+                    :isActive="activeTab"
+            >
+            </app-task-tab>
+          </Draggable>
+        </Container>
       </div>
     </div>
     <app-task-list :taskListTab="activeTab"></app-task-list>
@@ -16,25 +26,36 @@
   import TaskList from './TaskList'
   import Footer from './Footer'
   import TaskTab from './taskTab'
+  import {Container, Draggable} from 'vue-smooth-dnd'
+  import {mapGetters} from 'vuex'
 
   export default {
     components:{
       appHeading: Heading,
       appTaskList: TaskList,
-      appTaskTab: TaskTab
+      appTaskTab: TaskTab,
+      Container,
+      Draggable
     },
     data(){
       return {
-        activeTab: localStorage.getItem('activeTab') || 0,
-        tabs: this.$store.getters.tabs
       }
     },
     mounted(){
       this.$store.dispatch('fetchTabs');
     },
     computed: {
+      ...mapGetters({
+        stateTabs: 'tabs',
+        stateActiveTab: 'activeTab'
+      }),
       allTabs(){
-        return this.tabs;
+        let tabs = JSON.parse(JSON.stringify(this.stateTabs));
+
+        return tabs;
+      },
+      activeTab(){
+        return this.stateActiveTab
       }
     },
     methods:{
@@ -42,7 +63,23 @@
         this.$store.dispatch('createNewTab');
       },
       activateTab(tab){
-        this.activeTab = tab;
+        this.$store.dispatch('makeTabActive', tab);
+      },
+      dragStart(){
+
+      },
+      tabReplace(tabReplaceData){
+        let tabs = {...this.allTabs};
+
+        const tabsList   = Object.keys(tabs),
+              draggedKey = tabsList[tabReplaceData.removedIndex],
+              targetKey  = tabsList[tabReplaceData.addedIndex],
+              buffer = {...tabs[draggedKey]};
+
+        tabs[draggedKey] = {...tabs[targetKey]};
+        tabs[targetKey] = {...buffer};
+
+        this.$store.dispatch('switchTabs', {stateTabs: JSON.stringify(tabs), dbSource: draggedKey, dbTarget: targetKey});
       }
     }
   }

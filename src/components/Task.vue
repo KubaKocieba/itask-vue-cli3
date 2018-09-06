@@ -18,7 +18,7 @@
         </span>
 
       <transition name="detailsAppear" mode="out-in" type="animation">
-      <div class="tDetails" v-if="details && task.id">
+      <div class="tDetails" v-show="details && task.id">
         <div class="leftCol">
             <span v-if="!descEdit" @click="editDescription">{{ task.description }}</span>
             <textarea v-else
@@ -46,7 +46,8 @@
       return {
         edit: false,
         descEdit: false,
-        details: false
+        details: false,
+        drag: null
       }
     },
     computed: {
