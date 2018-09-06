@@ -12,7 +12,7 @@ const state = {
   tabs: {},
   tabData: {},
   loaded: false,
-  activeTab: 0
+  activeTab: localStorage.getItem("activeTab")
 };
 
 const getters = {
@@ -161,6 +161,7 @@ const mutations = {
     );
   },
   makeTabActive(state, currentActive) {
+    localStorage.setItem("activeTab", currentActive);
     state.activeTab = currentActive;
   },
   receiveList(state, tab) {

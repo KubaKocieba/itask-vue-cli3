@@ -1,7 +1,7 @@
 <template>
   <div class="tab" :class="{active: isItActive}">
     <input v-focus v-if="edit" @blur="edit = false" type="text" v-model="tabName" @keydown.enter="editThisTab"></input>
-    <span v-else class="nameDisplay" @dblclick="displayTab" @contextmenu.prevent="edit = true">{{this.tab}}</span>
+    <span v-else class="nameDisplay" @click="displayTab" @contextmenu.prevent="edit = true">{{this.tab}}</span>
     <span class="closeTab" @click="closeTab">x</span>
   </div>
 </template>
