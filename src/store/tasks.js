@@ -10,7 +10,7 @@ const db = axios.create({
 const state = {
   tasks: {},
   tabs: {},
-  tabData: null,
+  tabData: {},
   loaded: false,
   activeTab: 0
 };
@@ -85,15 +85,17 @@ const mutations = {
     db.get(
       "users/" + userId + "/tabs.json?auth=" + store.getters.user.idToken
     ).then(resp => {
-      let tabs = resp.data;
+      let tabs = { ...resp.data };
+
+      console.log(tabs);
 
       if (tabs) {
+        state.tabData.tabs = {};
         Object.keys(tabs).forEach(tab => {
+          Vue.set(state["tabData"].tabs, tab, tabs[tab]);
           Vue.set(state["tabs"], tab, { name: tabs[tab]["name"] });
         });
       }
-
-      state.tabData = { ...resp.data };
     });
   },
   closeTab(state, tabObj) {
@@ -145,11 +147,9 @@ const mutations = {
 
     state.tabs = { ...tabs };
 
-    if (state.activeTab === dbSource) {
-      console.log("przypadek source");
+    if (state.activeTab == dbSource) {
       state.activeTab = dbTarget;
-    } else if (state.activeTab === dbTarget) {
-      console.log("przypadek target");
+    } else if (state.activeTab == dbTarget) {
       state.activeTab = dbSource;
     }
 
@@ -172,6 +172,8 @@ const mutations = {
     db.get("users/" + userId + ".json?auth=" + store.getters.user.idToken)
       .then(resp => {
         //no list was created (new user)
+        var allData = { ...resp.data };
+
         if (!resp.data) {
           db.put(
             "users/" + userId + ".json?auth=" + store.getters.user.idToken,
@@ -190,7 +192,7 @@ const mutations = {
 
           state.loaded = true;
         } else {
-          state.tabData = { ...resp.data };
+          state.tabData = allData;
 
           db.get(
             "users/" +
@@ -208,7 +210,7 @@ const mutations = {
               ({ init, ...state.tasks } = listObj);
 
               state.loaded = true;
-              localStorage.setItem("activeTab", tab);
+              state.activeTab = tab;
             }
             //in that case we have to create the object on next page reload
             else {
