@@ -64,6 +64,7 @@ const mutations = {
 
     state.tabData.tabs[key].name = name;
     state.tabs[key].name = name;
+
     db.patch(
       "users/" +
         userId +
@@ -145,8 +146,14 @@ const mutations = {
     state.tabs = { ...tabs };
 
     if (state.activeTab === dbSource) {
+      console.log("przypadek source");
       state.activeTab = dbTarget;
+    } else if (state.activeTab === dbTarget) {
+      console.log("przypadek target");
+      state.activeTab = dbSource;
     }
+
+    console.log(tabData);
 
     db.put(
       "users/" + userId + "/tabs.json?auth=" + store.getters.user.idToken,
