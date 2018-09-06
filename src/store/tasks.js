@@ -118,7 +118,7 @@ const mutations = {
 
       if (tabObj.key === localStorage.getItem("activeTab")) {
         store.dispatch("fetchList", lastExisting);
-        tabObj.tabToEmit.$emit("makeActive", lastExisting);
+        state.activeTab = lastExisting;
       }
 
       localStorage.setItem("activeTab", lastExisting);
