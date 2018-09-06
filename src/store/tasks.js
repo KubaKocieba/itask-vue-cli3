@@ -60,16 +60,18 @@ const mutations = {
   editTabName(state, tab) {
     var userId = store.getters.user.userId;
 
-    state.tabData.tabs[tab.key].name = tab.name;
+    const { name, key } = tab;
 
+    state.tabData.tabs[key].name = name;
+    state.tabs[key].name = name;
     db.patch(
       "users/" +
         userId +
         "/tabs/" +
-        tab.key +
+        key +
         ".json?auth=" +
         store.getters.user.idToken,
-      { name: tab.name }
+      { name }
     ).then(resp => {
       //Vue.set(state.tabs, 'tab' + Object.keys(state.tabs).length, tabInit);
       document.activeElement.blur();
@@ -120,23 +122,31 @@ const mutations = {
     });
   },
   switchTabs(state, newTabs) {
-    const { stateTabs, dbSource, dbTarget } = newTabs,
+    const { dbSource, dbTarget } = newTabs,
       userId = store.getters.user.userId;
 
-    state.tabs = JSON.parse(stateTabs);
+    let tabs = { ...state.tabs };
+
+    const buftab = tabs[dbSource];
+
+    tabs[dbSource] = { ...tabs[dbTarget] };
+    tabs[dbTarget] = { ...buftab };
 
     let tabData = { ...state.tabData.tabs };
     const buffer = { ...tabData[dbSource] };
 
     tabData[dbSource] = { ...tabData[dbTarget] };
-
     tabData[dbTarget] = { ...buffer };
 
-    state.tabData.tabs = { ...tabData };
+    state.tabData = {
+      tabs: { ...tabData }
+    };
 
-    // if(state.activeTab === dbSource){
-    //   state.activeTab = dbTarget;
-    // }
+    state.tabs = { ...tabs };
+
+    if (state.activeTab === dbSource) {
+      state.activeTab = dbTarget;
+    }
 
     db.put(
       "users/" + userId + "/tabs.json?auth=" + store.getters.user.idToken,

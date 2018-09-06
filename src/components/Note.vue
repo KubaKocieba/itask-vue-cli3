@@ -5,7 +5,7 @@
       <div id="addTab" @click="newTab">+</div>
       <div>
         <Container id="tabs" @drag-start="dragStart" @drop="tabReplace" orientation="horizontal" lock-axis="x">
-          <Draggable v-for="(tab, tabKey, index) in allTabs" :key="index">
+          <Draggable v-for="(tab, tabKey,index) in allTabs" :key="`tab_${index}_${tab.name}`">
             <app-task-tab
                     :name="tab.name"
                     :tabKey="tabKey"
@@ -83,7 +83,9 @@
         tabs[draggedKey] = {...tabs[targetKey]};
         tabs[targetKey] = {...buffer};
 
-        this.switchTabs({stateTabs: JSON.stringify(tabs), dbSource: draggedKey, dbTarget: targetKey});
+        this.switchTabs({ 
+          dbSource: draggedKey, 
+          dbTarget: targetKey});
       }
     }
   }
