@@ -39,7 +39,7 @@
 </template>
 
 <script>
-import {mapActions} from 'vuex'
+import {mapGetters, mapActions} from 'vuex'
 
 export default {
   data(){
@@ -51,8 +51,11 @@ export default {
     }
   },
   computed:{
+    ...mapGetters([
+      'authError'
+    ]),
     errorMessage(){
-      return this.$store.getters.authError;
+      return this.authError;
     }
   },
   methods: {

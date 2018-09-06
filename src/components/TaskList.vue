@@ -3,12 +3,12 @@
     <small>
       <div class="filters">
       <label for="filters"> Filter by
-      <select  v-if="tasksLoaded && tasks" v-model="status">
+      <select  v-if="tasksLoaded && allTasks" v-model="status">
         <option v-for="(option, index) in filterOptions" :value="option.value" @click="status = option.value" :key="`filterOption${index}`">{{option.text}}</option>
       </select></label>
     </div>
     </small>
-    <div id="list" v-if="tasksLoaded">
+    <div id="list" v-if="tasksAreLoaded">
       <Container @drop="onDrop" @drag-start="dragStart">
         <Draggable v-for="(task, index) in areEnoughInputs" v-if="!task.init" :key="`drag${index}`">
           <transition-group appear leave-active-class="animated fadeOut">
@@ -17,7 +17,7 @@
             leave-active-class="animated fadeOut"
             mode="in-out"
             :name="`taskInput${index}`"
-            :task="populateInputs(tasks, index)"
+            :task="populateInputs(allTasks, index)"
             :key="`task${index}`"
             :filter="status"
           ></Task>
@@ -33,14 +33,12 @@
 </template>
 
 <script>
-
-  import taskTools from './taskTools'
+  import {mapGetters, mapActions} from 'vuex'
   import Task from './Task'
   import { Draggable, Container } from "vue-smooth-dnd";
 
   export default {
     components:{
-      taskTools,
       Task,
       Container,
       Draggable
@@ -65,9 +63,13 @@
       });
     },
     mounted(){
-      this.$store.dispatch('fetchList', this.taskListTab);
+      this.fetchList(this.taskListTab);
     },
     methods:{
+      ...mapActions([
+        'editList',
+        'fetchList'
+      ]),
       blur(event){
         event.target.value = '';
         event.target.blur();
@@ -122,26 +124,30 @@
           list[droppedOnTask].slot = 'taskInput' + data.removedIndex;
         }
 
-        this.$store.dispatch('editList', list);
+        this.editList(list);
       },
       dragStart(){
         //for test purposes
       }
     },
     computed:{
+      ...mapGetters([
+        'tasks',
+        'tasksLoaded'
+      ]),
       inputs(){
         return 11 - this.tasksAmount;
       },
       tasksAmount(){
-        return Object.keys(this.$store.getters.tasks).length + 1;
+        return Object.keys(this.tasks).length + 1;
       },
-      tasks(){
-        let tasks = this.$store.getters.tasks;
+      allTasks(){
+        let tasks = this.tasks;
 
         return tasks;
       },
-      tasksLoaded(){
-        return this.$store.getters.tasksLoaded;
+      tasksAreLoaded(){
+        return this.tasksLoaded;
       },
       areEnoughInputs(){
         if (this.tasksAmount >= 12)

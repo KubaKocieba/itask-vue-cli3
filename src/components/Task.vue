@@ -7,7 +7,7 @@
           :placeholder="task.shortDesc"
           onfocus="this.select()"
           v-model="editTask.shortDesc"
-          @keydown.enter="event => {task.id ? updateTask() : addTask(event)}"
+          @keydown.enter="event => {task.id ? changeTask() : newTask(event)}"
           @keydown.esc="event => {edit = !edit;editTask.shortDesc = task.shortDesc;blurInput(event)}"
           :id="name"
         />
@@ -25,12 +25,12 @@
                 class="taskDetailsInfo"
                 v-model="editTask.description"
                 @keydown.esc="exitEditDesc"
-                @keydown.enter="updateTask"
+                @keydown.enter="changeTask"
             ></textarea>
         </div>
         <div class="rightCol">
           <button title="Click to change status" class="changeStatus" :class="{un: task.completed}" v-if="task.id" @click="changeStatus"></button>
-          <button title="Remove the task" class="removeTask" v-if="task.id" @click="removeTask"></button>
+          <button title="Remove the task" class="removeTask" v-if="task.id" @click="deleteTask"></button>
         </div>
       </div>
     </transition>
@@ -40,6 +40,8 @@
 </template>
 
 <script>
+  import {mapActions} from 'vuex'
+
   export default {
     props: ['task', 'name', 'filter'],
     data(){
@@ -61,7 +63,12 @@
       }
     },
     methods: {
-      addTask(event){
+      ...mapActions([
+        'addTask',
+        'removeTask',
+        'updateTask'
+      ]),
+      newTask(event){
         if(event.target.value.length)
         {
           var newTaskObj = {
@@ -72,7 +79,7 @@
             slot: event.target.attributes.id.value
            };
 
-          this.$store.dispatch('addTask', newTaskObj);
+          this.addTask(newTaskObj);
         }
       },
       resetInputParams(){
@@ -80,24 +87,24 @@
         this.descEdit = false;
         this.details = false;
       },
-      removeTask(){
+      deleteTask(){
         this.resetInputParams();
         this.editTask = {};
-        this.$store.dispatch('removeTask',this.task.id);
+        this.removeTask(this.task.id);
       },
-      updateTask(){
+      changeTask(){
         let edited = this.editTask;
 
         Object.keys(edited).forEach(key =>{
           if (edited[key] !== this.task[key]){
-            this.$store.dispatch('updateTask',
+            this.updateTask(
               {
                id: edited.id,
                target: key,
                value: edited[key]
              });
           }
-        })
+        });
 
         if (this.edit){
           this.edit = false;

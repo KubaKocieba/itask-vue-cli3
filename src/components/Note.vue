@@ -10,7 +10,7 @@
                     :name="tab.name"
                     :tabKey="tabKey"
                     @makeActive="activateTab"
-                    :isActive="activeTab"
+                    :isActive="activatedTab"
             >
             </app-task-tab>
           </Draggable>
@@ -27,7 +27,7 @@
   import Footer from './Footer'
   import TaskTab from './taskTab'
   import {Container, Draggable} from 'vue-smooth-dnd'
-  import {mapGetters} from 'vuex'
+  import {mapGetters, mapActions} from 'vuex'
 
   export default {
     components:{
@@ -42,28 +42,32 @@
       }
     },
     mounted(){
-      this.$store.dispatch('fetchTabs');
+      this.fetchTabs();
     },
     computed: {
-      ...mapGetters({
-        stateTabs: 'tabs',
-        stateActiveTab: 'activeTab'
-      }),
+      ...mapGetters([
+        'tabs',
+        'activeTab'
+      ]),
       allTabs(){
-        let tabs = JSON.parse(JSON.stringify(this.stateTabs));
-
-        return tabs;
+        return JSON.parse(JSON.stringify(this.tabs));
       },
-      activeTab(){
-        return this.stateActiveTab
+      activatedTab(){
+        return this.activeTab;
       }
     },
     methods:{
+      ...mapActions([
+        'createNewTab',
+        'makeTabActive',
+        'fetchTabs',
+        'switchTabs'
+      ]),
       newTab(){
-        this.$store.dispatch('createNewTab');
+        this.createNewTab();
       },
       activateTab(tab){
-        this.$store.dispatch('makeTabActive', tab);
+        this.makeTabActive(tab);
       },
       dragStart(){
 
@@ -79,7 +83,7 @@
         tabs[draggedKey] = {...tabs[targetKey]};
         tabs[targetKey] = {...buffer};
 
-        this.$store.dispatch('switchTabs', {stateTabs: JSON.stringify(tabs), dbSource: draggedKey, dbTarget: targetKey});
+        this.switchTabs({stateTabs: JSON.stringify(tabs), dbSource: draggedKey, dbTarget: targetKey});
       }
     }
   }

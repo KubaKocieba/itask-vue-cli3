@@ -1,6 +1,6 @@
 <template>
   <div class="tab" :class="{active: isItActive}">
-    <input v-focus v-if="edit" @blur="edit = false" type="text" v-model="tabName" @keydown.enter="editTab"></input>
+    <input v-focus v-if="edit" @blur="edit = false" type="text" v-model="tabName" @keydown.enter="editThisTab"></input>
     <span v-else class="nameDisplay" @dblclick="displayTab" @contextmenu.prevent="edit = true">{{this.tab}}</span>
     <span class="closeTab" @click="closeTab">x</span>
   </div>
@@ -13,6 +13,8 @@
       el.focus();
     }
   }
+
+  import {mapGetters, mapActions} from 'vuex'
 
   export default{
     props: ['name','tabKey', 'isActive'],
@@ -27,6 +29,9 @@
       focus
     },
     computed:{
+      ...mapGetters([
+        'tabs'
+      ]),
       tabName:{
         get(){
           return this.tab
@@ -40,30 +45,35 @@
       }
     },
     created(){
-      this.isItActiv ? this.$emit('makeActive', this.tabKey) : null;
+      //this.isItActiv ? this.$emit('makeActive', this.tabKey) : null;
     },
     methods:{
-      editTab(event){
+      ...mapActions([
+        'deleteTab',
+        'editTab',
+        'fetchList',
+      ]),
+      editThisTab(event){
         const inputTxt = event.target.value;
 
         if (inputTxt.length && inputTxt !== this.tab)
         {
           this.tab = inputTxt;
-          this.$store.dispatch('editTab', {name: inputTxt, key: this.tabKey});
+          this.editTab({name: inputTxt, key: this.tabKey});
         }
       },
       closeTab(){
-        let vm = this;
+        let vm = {...this};
 
-        if (Object.keys(this.$store.getters.tabs).length > 1)
+        if (Object.keys(this.tabs).length > 1)
         {
-          this.$store.dispatch('deleteTab', {name: this.tab, key: this.tabKey, tabToEmit: vm});
+          this.deleteTab({name: this.tab, key: this.tabKey, tabToEmit: vm});
         }
       },
       displayTab(){
         if(!this.isItActive)
         {
-          this.$store.dispatch('fetchList', this.tabKey);
+          this.fetchList(this.tabKey);
           this.$emit('makeActive', this.tabKey);
         }
       }
