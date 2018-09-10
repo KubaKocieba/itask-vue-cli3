@@ -153,8 +153,6 @@ const mutations = {
       state.activeTab = dbSource;
     }
 
-    console.log(tabData);
-
     db.put(
       "users/" + userId + "/tabs.json?auth=" + store.getters.user.idToken,
       tabData

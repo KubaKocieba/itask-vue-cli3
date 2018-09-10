@@ -123,9 +123,6 @@
         const srcCheck = isFilled('source'),
               targetCheck = isFilled('target');
 
-        console.log(srcCheck);
-        console.log(targetCheck);
-
         if (srcCheck || targetCheck){
           srcCheck ? list[srcCheck].slot = 'taskInput' + target : null;
           targetCheck ? list[targetCheck].slot = 'taskInput' + source : null;

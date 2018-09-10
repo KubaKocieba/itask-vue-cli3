@@ -10,6 +10,7 @@
 import Note from './components/Note'
 import Login from './components/Login'
 import Title from './components/Title'
+import {mapGetters, mapActions} from 'vuex'
 
 export default {
   name: 'App',
@@ -19,12 +20,15 @@ export default {
     appTitle: Title
   },
   computed: {
+    ...mapGetters([
+      'user'
+    ]),
     loggedIn(){
-      return this.$store.getters.user.loggedIn;
+      return this.user.loggedIn;
     }
   },
   created(){
-    var loginInfo = this.$store.getters.user;
+    var loginInfo = this.user;
 
     if (this.checkStorage() && !loginInfo.idToken){
       const userData = {
@@ -32,10 +36,13 @@ export default {
           localId: localStorage.getItem('userId')
       }
 
-      this.$store.dispatch('refreshLogin', userData);
+      this.refreshLogin(userData);
     }
   },
   methods:{
+    ...mapActions([
+      'refreshLogin'
+    ]),
     checkStorage(){
       return !!localStorage.getItem('refreshToken');
     }
