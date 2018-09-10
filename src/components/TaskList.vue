@@ -93,38 +93,45 @@
         return search || this.generic;
       },
       onDrop(data){
-        let list  = {...this.tasks};
+        let list  = {...this.tasks},
+            listKeys = Object.keys(list);
 
-        let listKeys = Object.keys(list);
-
-        listKeys.splice(0,1);
-
-        const closest = (toWhat) => {
-          if(!listKeys[toWhat]) {
-            console.log('pach');
-            return listKeys.reduce((prev, curr) => Math.abs(curr - toWhat) < Math.abs(prev - toWhat) ? curr : prev)
-          }
-
-          return listKeys[toWhat];
-        };
-
-        const draggedTask   = closest(data.removedIndex),
-              droppedOnTask = closest(data.addedIndex);
-
-        const buffer = list[draggedTask];
-
-        console.log(draggedTask);
-        console.log(droppedOnTask);
+        const source = data.removedIndex,
+              target = data.addedIndex;
 
         console.log(data);
 
-        list[draggedTask].slot = 'taskInput' + data.addedIndex;
+        listKeys.splice(0,1);
 
-        if (droppedOnTask){
-          list[droppedOnTask].slot = 'taskInput' + data.removedIndex;
+        const isFilled = (what) => {
+          let which = false;
+
+          Object.values(list).map(task => {
+            if(task.slot && task.slot.split('taskInput')[1] == (what ==='source'? source : target))
+            {
+              which = task.slot
+            }
+          });
+
+          return Object.keys(list).find(task=>{
+            return list[task].slot && list[task].slot.split('taskInput')[1] == (what ==='source'? source : target)
+          });
+
+          //return which;
         }
 
-        this.editList(list);
+        const srcCheck = isFilled('source'),
+              targetCheck = isFilled('target');
+
+        console.log(srcCheck);
+        console.log(targetCheck);
+
+        if (srcCheck || targetCheck){
+          srcCheck ? list[srcCheck].slot = 'taskInput' + target : null;
+          targetCheck ? list[targetCheck].slot = 'taskInput' + source : null;
+
+          this.editList(list);
+        }
       },
       dragStart(){
         //for test purposes

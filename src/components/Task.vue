@@ -126,7 +126,7 @@
       },
       changeStatus(){
         this.editTask.completed = !this.editTask.completed;
-        this.updateTask();
+        this.changeTask();
       }
     }
   }
