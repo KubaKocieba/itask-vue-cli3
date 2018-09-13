@@ -9,7 +9,12 @@
     </div>
     </small>
     <div id="list" v-if="tasksAreLoaded">
-      <Container @drop="onDrop" @drag-start="dragStart">
+      <Container
+              :get-child-payload="getChildPayload"
+              @drop="onDrop"
+              @drag-start="dragStart"
+              @drag-leave="dragLeave"
+      >
         <Draggable v-for="(task, index) in areEnoughInputs" v-if="!task.init" :key="`drag${index}`">
           <transition-group appear leave-active-class="animated fadeOut">
           <Task
@@ -18,7 +23,7 @@
             mode="in-out"
             :name="`taskInput${index}`"
             :task="populateInputs(allTasks, index)"
-            :key="`task${index}`"
+            :key="`task${index}S{task.completed}`"
             :filter="status"
           ></Task>
           </transition-group>
@@ -27,8 +32,6 @@
       </Container>
     </div>
     <div v-else id="loading">Loading</div>
-
-
   </div>
 </template>
 
@@ -54,6 +57,8 @@
           slot: '',
           listTab: this.taskListTab
         },
+        drag: false,
+        dragged:null,
         status: null,
         filterOptions: [
           { text: 'Completed', value: true },
@@ -68,7 +73,8 @@
     methods:{
       ...mapActions([
         'editList',
-        'fetchList'
+        'fetchList',
+        'removeTask'
       ]),
       blur(event){
         event.target.value = '';
@@ -92,14 +98,21 @@
 
         return search || this.generic;
       },
-      onDrop(data){
+      onDrop(data, event){
         let list  = {...this.tasks},
             listKeys = Object.keys(list);
 
         const source = data.removedIndex,
               target = data.addedIndex;
 
-        console.log(data);
+        this.drag = false;
+
+        if (source === target){
+          if (this.dragX > 0){
+            console.log('pyk');
+          }
+          return;
+        }
 
         listKeys.splice(0,1);
 
@@ -116,8 +129,6 @@
           return Object.keys(list).find(task=>{
             return list[task].slot && list[task].slot.split('taskInput')[1] == (what ==='source'? source : target)
           });
-
-          //return which;
         }
 
         const srcCheck = isFilled('source'),
@@ -130,9 +141,28 @@
           this.editList(list);
         }
       },
-      dragStart(){
+      getChildPayload(data){
+        return {
+          index: data,
+          content: document.getElementById('taskInput' + data)
+        }
+      },
+      dragLeave(){
+        this.deleteTask();
+      },
+      deleteTask(){
+        var draggedToRemove = Object.values(this.tasks).find(task=>{
+          return task.slot === this.dragged;
+        });
+
+        draggedToRemove ? this.removeTask(draggedToRemove.id) : null;
+      },
+      dragStart(data){
         //for test purposes
-      }
+        this.drag = true;
+
+        this.dragged = data.payload.content.id;
+      },
     },
     computed:{
       ...mapGetters([
@@ -189,6 +219,8 @@
 }
 
 #taskList{
+  margin-top: 20px;
+  height: 93%;
   overflow-y: scroll;
 }
 

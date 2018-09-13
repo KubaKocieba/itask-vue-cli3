@@ -3,13 +3,13 @@
     <span>
       <svg class="statusTick" width="60" height="60" xmlns="http://www.w3.org/2000/svg" @click="changeStatus">
         <g>
-          <rect x="3" y="35" width="23" height="23" rx="5" ry="5" :stroke="task.completed? 'green' : 'black'" fill="none" stroke-width="2"/>
-          <polyline v-show="task.completed" fill="none" stroke="green" stroke-width="3" points="0, 45 10,55 35,30"></polyline>
+          <rect x="3" y="35" width="23" height="23" rx="5" ry="5" :stroke="editTask.completed? 'green' : 'black'" fill="none" stroke-width="2"/>
+          <polyline v-show="editTask.completed" fill="none" stroke="green" stroke-width="3" points="0, 45 10,55 35,30"></polyline>
         </g>
       </svg>
       <input class="addingTask"
           @click="edit = !edit"
-          :class="{completed : task.completed}"
+          :class="{completed : editTask.completed}"
           :placeholder="task.shortDesc"
           onfocus="this.select()"
           v-model="editTask.shortDesc"
@@ -35,7 +35,7 @@
             ></textarea>
         </div>
         <div class="rightCol">
-          <button title="Click to change status" class="changeStatus" :class="{un: task.completed}" v-if="task.id" @click="changeStatus"></button>
+          <button title="Click to change status" class="changeStatus" :class="{un: editTask.completed}" v-if="task.id" @click="changeStatus"></button>
           <button title="Remove the task" class="removeTask" v-if="task.id" @click="deleteTask"></button>
         </div>
       </div>

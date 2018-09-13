@@ -9,8 +9,7 @@
         </transition>
       </h4>
       <h5>{{ user }}<button @click="logout" title="Logout"></button></h5>
-      <button title="Cleart the task list" id="clearList" @click="removeAll" >X</button>
-    </span>
+      <button title="Clear the task list" id="clearList" @click="removeAll">X</button>
   </div>
 </template>
 
@@ -62,6 +61,7 @@
         'logout'
       ]),
       removeAll(){
+        console.log('deleteAll');
         this.clearList();
       },
       logoutUser(){
